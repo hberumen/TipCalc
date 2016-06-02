@@ -48,6 +48,7 @@ public class TipAdapter extends RecyclerView.Adapter<TipAdapter.ViewHolder> {
         String strTip = String.format(
                     context.getString(R.string.global_message_tip),element.getTip());
         holder.txtContent.setText(strTip);
+        holder.txtTimeStamp.setText(element.getDateFormatted());
         holder.setOnItemClickListener(element, onItemClickListener);
     }
 
@@ -68,6 +69,7 @@ public class TipAdapter extends RecyclerView.Adapter<TipAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.txtContent) TextView txtContent;
+        @BindView(R.id.txtTimeStamp) TextView txtTimeStamp;
         public ViewHolder(View itemView){
             super(itemView);
             ButterKnife.bind(this, itemView);
