@@ -1,4 +1,4 @@
-package edu.galileo.android.tipcalc;
+package edu.galileo.android.tipcalc.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,20 +15,24 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Date;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import edu.galileo.android.tipcalc.R;
+import edu.galileo.android.tipcalc.TipCalcApp;
+import edu.galileo.android.tipcalc.fragments.TipHistoryListFragment;
+import edu.galileo.android.tipcalc.fragments.TipHistoryListFragmentListener;
+import edu.galileo.android.tipcalc.models.TipRecord;
 
 public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.intputBill) EditText inputBill;
-    @BindView(R.id.btnSubmit) Button btnSubmit;
     @BindView(R.id.inputPercentaje) EditText inputPercentaje;
-    @BindView(R.id.btnIncrease) Button btnIncrease;
-    @BindView(R.id.btnDecrease) Button btnDecrease;
-    @BindView(R.id.btnClear) Button btnClear;
     @BindView(R.id.txtTip) TextView txtTip;
 
+    private TipHistoryListFragmentListener fragmentListener;
     private final static int TIP_STEP_CHANGE = 1;
     private final static int DEFAULT_TIP_PERCENTAGE = 10;
 
@@ -38,7 +42,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        TipHistoryListFragment fragment =
+                (TipHistoryListFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentList);
 
+        fragment.setRetainInstance(true);
+        fragmentListener = (TipHistoryListFragmentListener)fragment;
     }
 
     @Override
@@ -60,13 +68,20 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.btnSubmit)
     public void handleClickSubmit(){
         hideKeyboard();
+
         String strInputTotal = inputBill.getText().toString().trim();
         if(!strInputTotal.isEmpty()){
             double total = Double.parseDouble(strInputTotal);
             int tipPercentage = getTipPercentage();
-            double tip = total * (tipPercentage/100d);
 
-            String strTip = String.format(getString(R.string.global_message_tip), tip);
+            TipRecord tipRecord = new TipRecord();
+            tipRecord.setBill(total);
+            tipRecord.setTipPercentage(tipPercentage);
+            tipRecord.setTimestamp(new Date());
+
+            String strTip = String.format(getString(R.string.global_message_tip),
+                                            tipRecord.getTip());
+            fragmentListener.addToList(tipRecord);
             txtTip.setVisibility(View.VISIBLE);
             txtTip.setText(strTip);
         }
@@ -83,6 +98,11 @@ public class MainActivity extends AppCompatActivity {
         hideKeyboard();
         handleTipChange(-TIP_STEP_CHANGE);
 
+    }
+
+    @OnClick(R.id.btnClear)
+    public void handleClickClear(){
+        fragmentListener.clearList();
     }
 
     private void handleTipChange(int change){
